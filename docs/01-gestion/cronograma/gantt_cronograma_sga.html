@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title>Cronograma SGA ZPremia — Gantt</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;background:#fff;color:#222}
+h1{font-size:16px;font-weight:700;padding:14px 16px 4px;color:#1F3864}
+.subtitle{font-size:11px;color:#666;padding:0 16px 10px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;padding:6px 16px 10px;align-items:center}
+.controls label{font-size:11px;color:#555;font-weight:600}
+select,button{font-size:11px;padding:3px 9px;border:1px solid #ccc;border-radius:4px;background:#fff;color:#222;cursor:pointer}
+button:hover{background:#f0f0f0}
+.kpis{display:flex;gap:10px;flex-wrap:wrap;padding:0 16px 10px}
+.kpi{background:#F2F2F2;border:1px solid #e5e5e5;border-radius:6px;padding:6px 12px;min-width:96px}
+.kpi .v{font-size:16px;font-weight:700;color:#1F3864}
+.kpi .l{font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.4px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;padding:0 16px 10px;font-size:11px;align-items:center}
+.leg-item{display:flex;align-items:center;gap:4px}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.gantt-wrap{overflow-x:auto;overflow-y:visible;padding-bottom:18px}
+table{border-collapse:collapse;width:100%;min-width:980px}
+thead th{font-size:10px;font-weight:600;color:#555;background:#f7f7f7;border-bottom:1px solid #e0e0e0;white-space:nowrap;padding:4px 6px;text-align:left}
+thead th.month-hdr{text-align:center;border-left:1px solid #e8e8e8;font-size:10px}
+tr.group-row td{background:#1F3864;font-weight:700;font-size:11px;padding:5px 10px;border-top:1px solid #ddd;color:#fff}
+tr.enh-row td{border-bottom:1px solid #f0f0f0;vertical-align:middle}
+tr.enh-row:hover td{background:#fafafa}
+td.col-id{font-family:monospace;font-size:10px;color:#777;padding:5px 6px;white-space:nowrap;width:50px}
+td.col-desc{font-size:11px;padding:5px 6px;max-width:230px;color:#222;line-height:1.3}
+td.col-owner{font-size:10px;color:#555;padding:5px 6px;white-space:nowrap;width:64px}
+td.col-status{padding:5px 6px;width:60px}
+.badge{display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;font-weight:600;white-space:nowrap}
+td.col-bar{padding:3px 0;position:relative}
+.obs-flag{display:inline-block;width:7px;height:7px;border-radius:50%;background:#e24b4a;margin-left:4px;vertical-align:middle;cursor:pointer;flex-shrink:0}
+.tooltip{position:absolute;z-index:999;background:#222;color:#fff;font-size:11px;padding:8px 11px;border-radius:6px;max-width:300px;line-height:1.5;pointer-events:none;display:none;white-space:pre-wrap;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.month-sep{border-left:1px solid #e8e8e8}
+</style>
+</head>
+<body>
+<h1>Cronograma de Proyecto — Sistema de Gestión de Almacén (SGA)</h1>
+<div class="subtitle">ZPremia / Grupo Zeta &nbsp;·&nbsp; 30 semanas (Jun — Dic 2026) &nbsp;·&nbsp; Agrupado por fase · Coloreado por rol responsable · Basado en ERS_01 v1.0</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="controls">
+  <label>Filtrar rol:</label>
+  <select id="ownerFilter" onchange="render()">
+    <option value="">Todos los roles</option>
+  </select>
+  <label>Filtrar fase:</label>
+  <select id="phaseFilter" onchange="render()">
+    <option value="">Todas las fases</option>
+  </select>
+  <button onclick="resetF()">↺ Limpiar filtros</button>
+  <button onclick="exportCSV()">↓ Exportar CSV</button>
+</div>
+
+<div class="legend" id="legend">
+  <span style="font-size:11px;color:#555;font-weight:700">Rol:</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#534AB7"></span>PM · Project Manager</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#2E75B6"></span>BA · Business Analyst</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#7030A0"></span>SA · Software Architect (TOGAF/Infra)</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#548235"></span>DBE · Developer Back End</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#C55A11"></span>DFE · Developer Front End</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#ED7D31"></span>DFS · Developer Full Stack</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#BF8F00"></span>QAB · QA Back</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#D4537E"></span>QAF · QA Front</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#1D9E75"></span>WM · Web Master (Deployment)</span>
+  <span class="leg-item" style="margin-left:6px"><span class="obs-flag"></span>Punto de integración</span>
+</div>
+
+<div class="gantt-wrap" id="ganttWrap">
+  <div class="tooltip" id="tooltip"></div>
+</div>
+
+<script>
+const WEEK_PX = 26;
+const START = new Date('2026-06-08');
+const NUM_WEEKS = 30;
+const TODAY = new Date();
+
+const PHASE_NAMES = {
+  "1":  "F1 — Inicio y Planificación",
+  "2":  "F2 — Análisis y Especificación",
+  "3":  "F3 — Arquitectura y Diseño",
+  "4":  "F4 — Configuración de Ambientes",
+  "5":  "F5 — Backend — Núcleo y Seguridad",
+  "6":  "F6 — Backend — Operaciones",
+  "7":  "F7 — Interfaces IZeta y APIs",
+  "8":  "F8 — Frontend WEB",
+  "9":  "F9 — App Mobile (Android)",
+  "10": "F10 — Pruebas (QA)",
+  "11": "F11 — Integración y UAT",
+  "12": "F12 — Despliegue y Puesta en Marcha",
+  "13": "F13 — Estabilización / Garantía",
+  "14": "F14 — Cierre del Proyecto"
+};
+
+const ROLE_COLOR = {
+  "PM":"#534AB7","BA":"#2E75B6","SA":"#7030A0",
+  "DBE":"#548235","DFE":"#C55A11","DFS":"#ED7D31",
+  "QAB":"#BF8F00","QAF":"#D4537E","WM":"#1D9E75"
+};
+
+const ROLE_NAME = {
+  "PM":"Project Manager","BA":"Business Analyst",
+  "SA":"Software Architect (TOGAF/Infra)",
+  "DBE":"Developer Back End","DFE":"Developer Front End",
+  "DFS":"Developer Full Stack","QAB":"QA Back",
+  "QAF":"QA Front","WM":"Web Master (Deployment)"
+};
+
+const MILESTONES = [
+  {"wk":1,  "label":"Kickoff y línea base del plan",       "color":"#534AB7"},
+  {"wk":5,  "label":"Requerimientos aprobados",             "color":"#2E75B6"},
+  {"wk":8,  "label":"Congelamiento de diseño/arquitectura", "color":"#7030A0"},
+  {"wk":20, "label":"Backend completo (code complete)",     "color":"#548235"},
+  {"wk":23, "label":"Mobile completo",                      "color":"#ED7D31"},
+  {"wk":26, "label":"Cierre de UAT (sign-off)",             "color":"#185FA5"},
+  {"wk":27, "label":"Puesta en marcha / Go-live",           "color":"#534AB7"},
+  {"wk":29, "label":"Cierre del proyecto",                  "color":"#404040"}
+];
+
+const ROLES = ["PM","BA","SA","DBE","DFE","DFS","QAB","QAF","WM"];
+
+const data = [
+  {"id":"1.1","desc":"Acta de Constitución del Proyecto (Project Charter)","role":"PM","apoyo":"BA","phase":1,"startWk":0,"endWk":1,"dur":3,"esf":3,"pred":"","reqs":"Gobierno","flag":false},
+  {"id":"1.2","desc":"Plan de Gestión del Proyecto (alcance, tiempo, costo, riesgos, calidad)","role":"PM","apoyo":"BA,SA","phase":1,"startWk":0,"endWk":1,"dur":5,"esf":6,"pred":"1.1","reqs":"Gobierno","flag":false},
+  {"id":"1.3","desc":"Definición de equipo, roles y plan de comunicaciones","role":"PM","apoyo":"","phase":1,"startWk":1,"endWk":2,"dur":2,"esf":2,"pred":"1.1","reqs":"Gobierno","flag":false},
+  {"id":"1.4","desc":"Reunión de arranque (Kickoff) con Grupo Zeta","role":"PM","apoyo":"BA,SA","phase":1,"startWk":1,"endWk":2,"dur":1,"esf":3,"pred":"1.2","reqs":"Gobierno","flag":false},
+  {"id":"2.1","desc":"Revisión y validación de la ERS v1.5 (SGA ZPremia)","role":"BA","apoyo":"SA","phase":2,"startWk":1,"endWk":2,"dur":4,"esf":4,"pred":"1.4","reqs":"Todos","flag":false},
+  {"id":"2.2","desc":"Análisis detallado de los 18 catálogos","role":"BA","apoyo":"SA","phase":2,"startWk":2,"endWk":3,"dur":5,"esf":5,"pred":"2.1","reqs":"REQ-F011..F028","flag":false},
+  {"id":"2.3","desc":"Análisis de procesos operativos (recibo, inventarios, traspasos)","role":"BA","apoyo":"SA","phase":2,"startWk":3,"endWk":4,"dur":5,"esf":5,"pred":"2.2","reqs":"REQ-F030..F042","flag":false},
+  {"id":"2.4","desc":"Análisis de las 6 interfaces de comunicación con IZeta","role":"BA","apoyo":"SA","phase":2,"startWk":3,"endWk":4,"dur":4,"esf":5,"pred":"2.2","reqs":"Interfaces / APIs","flag":false},
+  {"id":"2.5","desc":"Modelado de casos de uso y reglas de negocio","role":"BA","apoyo":"","phase":2,"startWk":4,"endWk":5,"dur":5,"esf":5,"pred":"2.3","reqs":"Reglas de Negocio","flag":false},
+  {"id":"2.6","desc":"Especificación de requerimientos no funcionales","role":"BA","apoyo":"SA","phase":2,"startWk":4,"endWk":5,"dur":3,"esf":3,"pred":"2.3","reqs":"REQ-NF001..NF012","flag":false},
+  {"id":"2.7","desc":"Matriz de trazabilidad de requerimientos","role":"BA","apoyo":"","phase":2,"startWk":5,"endWk":6,"dur":2,"esf":2,"pred":"2.5,2.6","reqs":"Todos","flag":true},
+  {"id":"3.1","desc":"Arquitectura de software (TOGAF ADM, vistas y ADRs)","role":"SA","apoyo":"DBE","phase":3,"startWk":3,"endWk":5,"dur":8,"esf":8,"pred":"2.1","reqs":"Todos","flag":false},
+  {"id":"3.2","desc":"Diseño de infraestructura (servidores, RED, IIS, RAID, WLAN)","role":"SA","apoyo":"WM","phase":3,"startWk":5,"endWk":6,"dur":5,"esf":5,"pred":"3.1","reqs":"REQ-NF001/Restricciones","flag":false},
+  {"id":"3.3","desc":"Modelo de datos y diseño de BD SQL Server 2017","role":"SA","apoyo":"DBE","phase":3,"startWk":5,"endWk":7,"dur":6,"esf":8,"pred":"2.2","reqs":"Catálogos/Operaciones","flag":false},
+  {"id":"3.4","desc":"Diseño de APIs e interfaces (contratos REST, IZeta)","role":"SA","apoyo":"DBE","phase":3,"startWk":6,"endWk":7,"dur":5,"esf":6,"pred":"2.4","reqs":"Interfaces / APIs","flag":false},
+  {"id":"3.5","desc":"Diseño UX/UI WEB y App Mobile","role":"SA","apoyo":"DFE,DFS","phase":3,"startWk":6,"endWk":8,"dur":6,"esf":8,"pred":"3.1","reqs":"REQ-F001","flag":false},
+  {"id":"3.6","desc":"Estándares de codificación, seguridad y plan de pruebas","role":"SA","apoyo":"QAB,QAF","phase":3,"startWk":7,"endWk":8,"dur":3,"esf":3,"pred":"3.1","reqs":"REQ-NF011","flag":false},
+  {"id":"4.1","desc":"Setup de repositorios, ramas y pipeline CI/CD","role":"WM","apoyo":"SA","phase":4,"startWk":7,"endWk":8,"dur":3,"esf":3,"pred":"3.6","reqs":"DevOps","flag":false},
+  {"id":"4.2","desc":"Provisión de ambientes Dev / QA / UAT","role":"WM","apoyo":"SA","phase":4,"startWk":8,"endWk":9,"dur":4,"esf":5,"pred":"3.2","reqs":"Infraestructura","flag":false},
+  {"id":"4.3","desc":"Configuración SQL Server 2017 e IIS","role":"WM","apoyo":"DBE","phase":4,"startWk":8,"endWk":9,"dur":3,"esf":3,"pred":"3.2,3.3","reqs":"Infraestructura","flag":true},
+  {"id":"5.1","desc":"Capa de persistencia y modelo de datos (ORM/ADO)","role":"DBE","apoyo":"DFS","phase":5,"startWk":9,"endWk":11,"dur":6,"esf":8,"pred":"3.3,4.3","reqs":"Catálogos","flag":true},
+  {"id":"5.2","desc":"Módulo de Seguridad: usuarios, perfiles, login y auditoría","role":"DBE","apoyo":"","phase":5,"startWk":10,"endWk":12,"dur":8,"esf":8,"pred":"5.1","reqs":"REQ-F002..F010,F027,F028","flag":false},
+  {"id":"5.3","desc":"Backend de Catálogos (18 catálogos)","role":"DBE","apoyo":"DFS","phase":5,"startWk":11,"endWk":13,"dur":10,"esf":16,"pred":"5.1","reqs":"REQ-F011..F026","flag":false},
+  {"id":"5.4","desc":"Parámetros del Sistema y notificaciones por correo","role":"DBE","apoyo":"","phase":5,"startWk":12,"endWk":13,"dur":3,"esf":3,"pred":"5.2","reqs":"REQ-F029,F010","flag":false},
+  {"id":"6.1","desc":"Recibo sin inspección e importación de Packing List","role":"DBE","apoyo":"","phase":6,"startWk":12,"endWk":14,"dur":6,"esf":7,"pred":"5.3","reqs":"REQ-F030..F032","flag":false},
+  {"id":"6.2","desc":"Inventarios: entradas, salidas, ajustes e inv. físico","role":"DBE","apoyo":"DFS","phase":6,"startWk":13,"endWk":15,"dur":10,"esf":15,"pred":"6.1","reqs":"REQ-F033,F038..F042","flag":false},
+  {"id":"6.3","desc":"Proceso de Inspección (servidor)","role":"DBE","apoyo":"","phase":6,"startWk":15,"endWk":16,"dur":5,"esf":5,"pred":"6.1","reqs":"REQ-F034","flag":false},
+  {"id":"6.4","desc":"Traspasos: orden de surtido, envío y recepción","role":"DBE","apoyo":"","phase":6,"startWk":15,"endWk":17,"dur":8,"esf":9,"pred":"6.2","reqs":"REQ-F035..F037","flag":false},
+  {"id":"6.5","desc":"Motor de Reportes (7 reportes)","role":"DBE","apoyo":"DFS","phase":6,"startWk":17,"endWk":18,"dur":5,"esf":6,"pred":"6.2","reqs":"Reportes","flag":false},
+  {"id":"7.1","desc":"API de usuarios y productos","role":"DBE","apoyo":"","phase":7,"startWk":16,"endWk":17,"dur":5,"esf":5,"pred":"5.2,5.3","reqs":"Interfaz usuarios/productos","flag":true},
+  {"id":"7.2","desc":"API de entradas, salidas y compras","role":"DBE","apoyo":"","phase":7,"startWk":17,"endWk":18,"dur":5,"esf":5,"pred":"6.2","reqs":"Interfaz entrada/salida","flag":false},
+  {"id":"7.3","desc":"API de traspasos entre almacenes","role":"DBE","apoyo":"","phase":7,"startWk":18,"endWk":19,"dur":3,"esf":3,"pred":"6.4","reqs":"Interfaz traspasos","flag":false},
+  {"id":"7.4","desc":"Interfaz de sincronización con IZeta","role":"DBE","apoyo":"SA","phase":7,"startWk":19,"endWk":21,"dur":6,"esf":7,"pred":"7.1,7.2,7.3","reqs":"Interfaces","flag":true},
+  {"id":"8.1","desc":"Shell WEB, navegación y módulos desplegables","role":"DFE","apoyo":"","phase":8,"startWk":11,"endWk":12,"dur":5,"esf":5,"pred":"3.5","reqs":"REQ-F001","flag":false},
+  {"id":"8.2","desc":"Pantallas de Catálogos","role":"DFE","apoyo":"DFS","phase":8,"startWk":12,"endWk":14,"dur":10,"esf":14,"pred":"8.1,5.3","reqs":"REQ-F011..F028","flag":true},
+  {"id":"8.3","desc":"Pantallas de Operaciones (recibo, inventarios, traspasos)","role":"DFE","apoyo":"","phase":8,"startWk":14,"endWk":16,"dur":10,"esf":12,"pred":"8.2,6.2","reqs":"REQ-F030..F042","flag":true},
+  {"id":"8.4","desc":"Pantallas de Reportes","role":"DFE","apoyo":"","phase":8,"startWk":17,"endWk":18,"dur":5,"esf":5,"pred":"8.3,6.5","reqs":"Reportes","flag":true},
+  {"id":"8.5","desc":"Pantallas de Seguridad y Parámetros","role":"DFE","apoyo":"","phase":8,"startWk":18,"endWk":19,"dur":4,"esf":4,"pred":"8.2,5.2","reqs":"REQ-F027..F029","flag":true},
+  {"id":"9.1","desc":"Setup App Android + lectura código de barras (lineal/QR)","role":"DFS","apoyo":"","phase":9,"startWk":15,"endWk":16,"dur":5,"esf":6,"pred":"3.5","reqs":"Mobile REQ-F001","flag":false},
+  {"id":"9.2","desc":"Módulo de Inspección Mobile","role":"DFS","apoyo":"","phase":9,"startWk":16,"endWk":17,"dur":5,"esf":5,"pred":"9.1,6.3","reqs":"Mobile REQ-F002","flag":true},
+  {"id":"9.3","desc":"Entradas y Salidas Mobile","role":"DFS","apoyo":"","phase":9,"startWk":17,"endWk":18,"dur":5,"esf":5,"pred":"9.1,6.2","reqs":"Mobile REQ-F003/F004","flag":true},
+  {"id":"9.4","desc":"Ubicaciones Mobile","role":"DFS","apoyo":"","phase":9,"startWk":18,"endWk":19,"dur":4,"esf":4,"pred":"9.1,6.1","reqs":"Mobile REQ-F005","flag":true},
+  {"id":"9.5","desc":"Traspasos de envío y recepción Mobile","role":"DFS","apoyo":"","phase":9,"startWk":19,"endWk":20,"dur":5,"esf":5,"pred":"9.3,6.4","reqs":"Mobile REQ-F006/F007","flag":true},
+  {"id":"9.6","desc":"Impresión de etiquetas (Honeywell PC42T / ZPL-II)","role":"DFS","apoyo":"","phase":9,"startWk":20,"endWk":21,"dur":4,"esf":4,"pred":"9.2","reqs":"Impresión etiquetas","flag":false},
+  {"id":"10.1","desc":"Plan y diseño de casos de prueba","role":"QAB","apoyo":"QAF","phase":10,"startWk":12,"endWk":13,"dur":5,"esf":8,"pred":"3.6","reqs":"Todos","flag":false},
+  {"id":"10.2","desc":"Pruebas unitarias e integración Backend","role":"QAB","apoyo":"","phase":10,"startWk":13,"endWk":16,"dur":12,"esf":18,"pred":"10.1,5.3","reqs":"Backend","flag":true},
+  {"id":"10.3","desc":"Pruebas de APIs e interfaces IZeta","role":"QAB","apoyo":"","phase":10,"startWk":19,"endWk":21,"dur":6,"esf":7,"pred":"7.4","reqs":"Interfaces / APIs","flag":false},
+  {"id":"10.4","desc":"Pruebas funcionales WEB (Frontend)","role":"QAF","apoyo":"","phase":10,"startWk":14,"endWk":16,"dur":10,"esf":14,"pred":"10.1,8.2","reqs":"Frontend WEB","flag":true},
+  {"id":"10.5","desc":"Pruebas funcionales App Mobile","role":"QAF","apoyo":"","phase":10,"startWk":17,"endWk":19,"dur":8,"esf":10,"pred":"9.2","reqs":"Mobile","flag":false},
+  {"id":"10.6","desc":"Pruebas no funcionales (carga 200 usuarios, <10s)","role":"QAB","apoyo":"SA","phase":10,"startWk":21,"endWk":22,"dur":5,"esf":6,"pred":"10.2,10.3","reqs":"REQ-NF005..NF010","flag":true},
+  {"id":"11.1","desc":"Pruebas de integración end-to-end (WEB+Mobile+IZeta)","role":"QAB","apoyo":"QAF","phase":11,"startWk":23,"endWk":24,"dur":5,"esf":8,"pred":"10.3,10.5,7.4","reqs":"Todos","flag":true},
+  {"id":"11.2","desc":"Soporte a Pruebas de Aceptación (UAT) con cliente","role":"BA","apoyo":"QAF","phase":11,"startWk":24,"endWk":25,"dur":5,"esf":7,"pred":"11.1","reqs":"Todos","flag":false},
+  {"id":"11.3","desc":"Corrección de defectos de UAT","role":"DFS","apoyo":"DBE,DFE","phase":11,"startWk":25,"endWk":26,"dur":5,"esf":9,"pred":"11.2","reqs":"Todos","flag":false},
+  {"id":"12.1","desc":"Plan de despliegue y estrategia de rollback","role":"WM","apoyo":"SA","phase":12,"startWk":25,"endWk":26,"dur":2,"esf":3,"pred":"11.1","reqs":"Despliegue","flag":false},
+  {"id":"12.2","desc":"Despliegue a Producción (WEB + Mobile + BD)","role":"WM","apoyo":"DBE","phase":12,"startWk":26,"endWk":27,"dur":3,"esf":4,"pred":"12.1,11.3","reqs":"Despliegue","flag":true},
+  {"id":"12.3","desc":"Configuración de impresoras y terminales handheld","role":"WM","apoyo":"DFS","phase":12,"startWk":26,"endWk":27,"dur":2,"esf":3,"pred":"12.2","reqs":"Hardware","flag":false},
+  {"id":"12.4","desc":"Puesta en marcha on-site (3 días, oficinas del cliente)","role":"WM","apoyo":"SA,BA","phase":12,"startWk":27,"endWk":28,"dur":3,"esf":5,"pred":"12.2,12.3","reqs":"Despliegue","flag":true},
+  {"id":"13.1","desc":"Soporte post-producción (hypercare)","role":"DFS","apoyo":"QAF","phase":13,"startWk":27,"endWk":29,"dur":8,"esf":10,"pred":"12.4","reqs":"Garantía","flag":false},
+  {"id":"13.2","desc":"Atención de bugs (garantía contractual)","role":"DFS","apoyo":"DBE","phase":13,"startWk":28,"endWk":29,"dur":5,"esf":5,"pred":"13.1","reqs":"Garantía","flag":false},
+  {"id":"14.1","desc":"Documentación final y manuales de usuario","role":"BA","apoyo":"WM","phase":14,"startWk":28,"endWk":29,"dur":4,"esf":5,"pred":"12.4","reqs":"Cierre","flag":false},
+  {"id":"14.2","desc":"Acta de cierre y lecciones aprendidas","role":"PM","apoyo":"BA","phase":14,"startWk":29,"endWk":30,"dur":2,"esf":3,"pred":"14.1,13.1","reqs":"Cierre","flag":true}
+];
+
+function weekOf(d){ return Math.floor((d-START)/(7*864e5)); }
+function roleColor(r){ return ROLE_COLOR[r]||'#888780'; }
+function badgeHtml(r){
+  const c=roleColor(r);
+  return `<span class="badge" style="background:${c}22;color:${c};border:0.5px solid ${c}66">${r}</span>`;
+}
+
+(function initFilters(){
+  const of=document.getElementById('ownerFilter');
+  ROLES.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r+' — '+ROLE_NAME[r];of.appendChild(o);});
+  const pf=document.getElementById('phaseFilter');
+  Object.keys(PHASE_NAMES).sort((a,b)=>a-b).forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=PHASE_NAMES[p];pf.appendChild(o);});
+})();
+
+function resetF(){document.getElementById('ownerFilter').value='';document.getElementById('phaseFilter').value='';render();}
+
+function monthCells(COLS){
+  let cells=[];let curMonth=-1,span=0,label='';
+  const fmt=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  for(let w=0;w<COLS;w++){
+    const d=new Date(START.getTime()+w*7*864e5);const m=d.getMonth();
+    if(m!==curMonth){if(span>0)cells.push(`<th class="month-hdr month-sep" colspan="${span}">${label}</th>`);curMonth=m;span=1;label=fmt[m]+" '"+String(d.getFullYear()).slice(2);}else span++;
+  }
+  if(span>0)cells.push(`<th class="month-hdr month-sep" colspan="${span}">${label}</th>`);
+  return cells.join('');
+}
+
+function renderKpis(rows){
+  const totalEsf=data.reduce((a,d)=>a+d.esf,0);
+  const finDate=new Date(START.getTime()+NUM_WEEKS*7*864e5);
+  const k=[
+    ['Actividades',data.length],['Fases',Object.keys(PHASE_NAMES).length],
+    ['Semanas',NUM_WEEKS],['Esfuerzo (p-d)',totalEsf],
+    ['Inicio',START.toLocaleDateString('es-MX')],['Fin estimado',finDate.toLocaleDateString('es-MX')]
+  ];
+  document.getElementById('kpis').innerHTML=k.map(([l,v])=>`<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+}
+
+function render(){
+  const ownerF=document.getElementById('ownerFilter').value;
+  const phaseF=document.getElementById('phaseFilter').value;
+  let rows=data.filter(d=>{
+    if(ownerF&&d.role!==ownerF&&!(d.apoyo||'').split(',').includes(ownerF))return false;
+    if(phaseF&&String(d.phase)!==phaseF)return false;
+    return true;
+  });
+  renderKpis(rows);
+  const COLS=NUM_WEEKS;const todayWk=weekOf(TODAY);
+  let html=`<table><thead><tr>
+    <th style="width:50px">ID</th>
+    <th style="width:230px">Actividad</th>
+    <th style="width:64px">Rol</th>
+    <th style="width:60px">Resp.</th>
+    ${monthCells(COLS)}
+  </tr><tr>
+    <th colspan="4" style="background:#fff;border-bottom:0.5px solid #e0e0e0"></th>
+    ${Array.from({length:COLS},(_,w)=>{
+      const ms=MILESTONES.filter(m=>m.wk===w);
+      const d=new Date(START.getTime()+w*7*864e5);
+      const monthBorder=w>0&&(d.getMonth()!==new Date(START.getTime()+(w-1)*7*864e5).getMonth());
+      const sem=`<div style="font-size:8px;color:#bbb">${w+1}</div>`;
+      if(!ms.length)return`<th class="${monthBorder?'month-sep':''}" style="width:${WEEK_PX}px;background:#fff;border-bottom:0.5px solid #e0e0e0;padding:1px 0;text-align:center">${sem}</th>`;
+      return`<th class="${monthBorder?'month-sep':''}" style="width:${WEEK_PX}px;background:#fff;border-bottom:0.5px solid #e0e0e0;padding:1px 0;position:relative">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+          ${ms.map(m=>`<div style="width:9px;height:9px;border-radius:50%;background:${m.color};border:1.5px solid #fff;box-shadow:0 0 0 1px ${m.color};cursor:pointer" title="${m.label}"></div>`).join('')}
+          ${sem}
+        </div>
+      </th>`;
+    }).join('')}
+  </tr></thead><tbody>`;
+
+  const phases=Object.keys(PHASE_NAMES).map(Number).sort((a,b)=>a-b);
+  phases.forEach(p=>{
+    const gRows=rows.filter(d=>d.phase===p);if(!gRows.length)return;
+    html+=`<tr class="group-row"><td colspan="${4+COLS}">${PHASE_NAMES[p]}</td></tr>`;
+    gRows.forEach(d=>{
+      const c=roleColor(d.role);const light=c+'22',border=c+'99';
+      const s=Math.max(0,Math.min(d.startWk,COLS));const e=Math.max(0,Math.min(d.endWk,COLS));
+      const obsEsc=(d.reqs+(d.pred?(' | Predecesor: '+d.pred):'')).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      const descEsc=d.desc.replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      const apoyoEsc=(d.apoyo||'').replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      let barCells='';
+      for(let w=0;w<COLS;w++){
+        const isToday=(w===todayWk);const inBar=(w>=s&&w<e);
+        const isStart=(w===s);const isEnd=(w===e-1);
+        const dts=new Date(START.getTime()+w*7*864e5);
+        const monthBorder=w>0&&(dts.getMonth()!==new Date(START.getTime()+(w-1)*7*864e5).getMonth());
+        barCells+=`<td class="col-bar${monthBorder?' month-sep':''}" style="width:${WEEK_PX}px;padding:0;position:relative">`;
+        if(isToday)barCells+=`<div style="position:absolute;top:0;bottom:0;left:0;width:100%;background:#e24b4a11;border-left:1.5px solid #e24b4a88;z-index:1"></div>`;
+        MILESTONES.filter(m=>m.wk===w).forEach(m=>{barCells+=`<div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:${m.color};opacity:0.25;z-index:1;pointer-events:none"></div>`;});
+        if(inBar){
+          const rL=isStart?'3px':'0';const rR=isEnd?'3px':'0';
+          barCells+=`<div style="position:absolute;top:4px;left:0;right:0;height:16px;background:${light};border-top:1.5px solid ${border};border-bottom:1.5px solid ${border};${isStart?`border-left:1.5px solid ${border};border-radius:${rL} 0 0 ${rL}`:''}${isEnd?`border-right:1.5px solid ${border};border-radius:0 ${rR} ${rR} 0`:''}z-index:2"></div>`;
+          if(isStart)barCells+=`<div style="position:absolute;top:6px;left:3px;font-size:9px;font-weight:700;color:${c};z-index:4;white-space:nowrap">${d.role}</div>`;
+          if(isStart&&d.flag)barCells+=`<div style="position:absolute;top:1px;right:1px;width:7px;height:7px;border-radius:50%;background:#e24b4a;z-index:3"></div>`;
+        }
+        barCells+='</td>';
+      }
+      html+=`<tr class="enh-row" onmouseenter="showTip(event,'${descEsc}','${d.role}','${apoyoEsc}','${obsEsc}',${d.dur},${d.esf},${d.startWk+1},${d.endWk})" onmouseleave="hideTip()">
+        <td class="col-id">${d.id}</td>
+        <td class="col-desc">${d.desc.length>46?d.desc.slice(0,45)+'…':d.desc}${d.flag?'<span class="obs-flag" title="Punto de integración"></span>':''}</td>
+        <td class="col-status">${badgeHtml(d.role)}</td>
+        <td class="col-owner">${ROLE_NAME[d.role].split(' ')[0]}</td>
+        ${barCells}
+      </tr>`;
+    });
+  });
+  html+='</tbody></table>';
+  document.getElementById('ganttWrap').innerHTML='<div class="tooltip" id="tooltip"></div>'+html;
+}
+
+function showTip(e,desc,role,apoyo,obs,dur,esf,si,sf){
+  const t=document.getElementById('tooltip');if(!t)return;
+  let content=`${desc}\n\nResponsable: ${role} — ${ROLE_NAME[role]}`;
+  if(apoyo)content+=`\nApoyo: ${apoyo}`;
+  content+=`\nSemanas: ${si}–${sf}  ·  Duración: ${dur} d háb.  ·  Esfuerzo: ${esf} p-d`;
+  if(obs)content+=`\n\n${obs}`;
+  t.textContent=content;t.style.display='block';
+  const rect=e.currentTarget.getBoundingClientRect();
+  const wrap=document.getElementById('ganttWrap').getBoundingClientRect();
+  t.style.top=(rect.top-wrap.top+26)+'px';
+  t.style.left=Math.min(Math.max(rect.left-wrap.left,4),wrap.width-310)+'px';
+}
+function hideTip(){const t=document.getElementById('tooltip');if(t)t.style.display='none';}
+
+function exportCSV(){
+  const hdr=['ID','Actividad','Fase','Rol Resp.','Apoyo','Sem Inicio','Sem Fin','Dur (d hab)','Esfuerzo (p-d)','Predecesor','Requerimientos'];
+  const rows=data.map(d=>[d.id,`"${d.desc}"`,'F'+d.phase,d.role,`"${d.apoyo}"`,d.startWk+1,d.endWk,d.dur,d.esf,`"${d.pred}"`,`"${d.reqs}"`]);
+  const csv=[hdr,...rows].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('﻿'+csv);
+  a.download='cronograma_sga_gantt.csv';a.click();
+}
+
+render();
+</script>
+</body>
+</html>
