@@ -1,17 +1,17 @@
-# SGA — Sistema de Gestión de Almacén
+# SGA - Sistema de Gestión de Almacén
 
 Sistema web y móvil para gestionar operaciones de recepción, almacenamiento,
 ubicación, inventario, surtido y distribución de productos promocionales
 para **ZPremia / Grupo Zeta**.
 
-Desarrollado por **ORPEL** | Global University — Taller de Proyecto
+Desarrollado por **ORPEL** | Global University - Taller de Proyecto
 Orientado a la Industria y Seguridad
 
 ---
 
 ## Estado Actual
 
-**Fase activa:** F1–F2 — Inicio, Planificación y Análisis  
+**Fase activa:** F1–F2 - Inicio, Planificación y Análisis  
 **Semana:** 3 de 30 · Junio 2026  
 **Próximo hito:** Requerimientos aprobados (sem. 5)
 
@@ -24,7 +24,7 @@ Orientado a la Industria y Seguridad
 | Backend       | Java 17 + Spring Boot 3                 |
 | Frontend      | Angular 17                              |
 | Base de datos | SQL Server 2017 Standard Edition        |
-| Mobile        | Android Java — Honeywell EDA60K / EDA51 |
+| Mobile        | Android Java - Honeywell EDA60K / EDA51 |
 | Servidor      | Windows Server + IIS 8+                 |
 | Red           | LAN / WLAN IEEE 802.11 a/b/g/n/ac       |
 
@@ -33,15 +33,15 @@ Orientado a la Industria y Seguridad
 ## Módulos del Sistema
 
 ### Web
-- **Catálogos** — Empresas, Almacenes, Racks, Pasillos, Productos, Proveedores, Clientes, Usuarios y más
-- **Recibo** — Importación de Packing List, recibo sin inspección, asignación de ubicaciones
-- **Inventarios** — Entradas, salidas, ajustes e inventario físico
-- **Traspasos** — Orden de surtido, traspaso de envío y recepción
-- **Reportes** — Recepción, inventario, histórico, cortesías, incidencias
-- **Seguridad** — Gestión de usuarios y perfiles
-- **Parámetros** — Configuración del sistema y notificaciones
+- **Catálogos** - Empresas, Almacenes, Racks, Pasillos, Productos, Proveedores, Clientes, Usuarios y más
+- **Recibo** - Importación de Packing List, recibo sin inspección, asignación de ubicaciones
+- **Inventarios** - Entradas, salidas, ajustes e inventario físico
+- **Traspasos** - Orden de surtido, traspaso de envío y recepción
+- **Reportes** - Recepción, inventario, histórico, cortesías, incidencias
+- **Seguridad** - Gestión de usuarios y perfiles
+- **Parámetros** - Configuración del sistema y notificaciones
 
-### Mobile (Android — Honeywell)
+### Mobile (Android - Honeywell)
 Inspección · Entradas · Salidas · Ubicaciones · Traspaso de envío · Traspaso de recepción
 
 ---
@@ -61,7 +61,7 @@ Inspección · Entradas · Salidas · Ubicaciones · Traspaso de envío · Trasp
 
 ## Cronograma
 
-30 semanas — Junio a Diciembre 2026 — Metodología Cascada
+30 semanas - Junio a Diciembre 2026 - Metodología Cascada
 
 | Fase    | Semanas | Descripción                   |
 |---------|---------|-------------------------------|
@@ -94,20 +94,20 @@ Proyecto-Industria/
 ├── backend/              # Java Spring Boot
 ├── frontend/             # Angular
 ├── mobile/               # Android (Honeywell EDA60K / EDA51)
-└── database/             # SQL Server — diseño, migraciones, seeds
+└── database/             # SQL Server - diseño, migraciones, seeds
 ```
 
 ---
 
 ## Prerrequisitos de Desarrollo
 
-> Documentación de setup en construcción — ver [F4 Configuración de Ambientes](docs/04-configuracion/) al completarse la fase de diseño (sem. 8–9).
+> Documentación de setup en construcción - ver [F4 Configuración de Ambientes](docs/04-configuracion/) al completarse la fase de diseño (sem. 8–9).
 
 ---
 
 ## Documentación
 
-- [ERS_01 — Especificación de Requerimientos](docs/02-analisis/ERS_01.pdf)
+- [ERS_01 - Especificación de Requerimientos](docs/02-analisis/ERS_01.pdf)
 - [Planificación ORPEL](docs/01-gestion/planificacion-orpel.pdf)
 - [Cronograma Gantt](docs/01-gestion/cronograma/gantt_cronograma_sga.html)
 - [Guía de contribución](CONTRIBUTING.md)
@@ -116,7 +116,7 @@ Proyecto-Industria/
 
 ## Restricciones Clave
 
-- SGA **no modifica** la BD de IZeta — integración solo lectura vía APIs
+- SGA **no modifica** la BD de IZeta - integración solo lectura vía APIs
 - App mobile **no opera offline**
 - Hardware fijo: Honeywell EDA60K, EDA51, impresora PC42T (ZPL-II)
 - Infraestructura **on-premise** (sin cloud)

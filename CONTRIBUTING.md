@@ -1,10 +1,10 @@
-# Guía de Contribución — SGA / ORPEL
+# Guía de Contribución - SGA / ORPEL
 
 ## Ramas
 
 | Rama | Propósito |
 |------|-----------|
-| `master` | Versión estable — solo merge en hitos del Gantt |
+| `master` | Versión estable - solo merge en hitos del Gantt |
 | `develop` | Integración general del equipo |
 | `feature/<nombre>` | Nueva funcionalidad |
 | `fix/<nombre>` | Corrección de errores |
@@ -28,7 +28,7 @@ hotfix/inventario-ajuste-produccion
 <tipo>(<scope>): <descripción corta en inglés>
 ```
 
-El `scope` es el ID de tarea del Gantt — permite trazar cada commit al cronograma del proyecto.
+El `scope` es el ID de tarea del Gantt - permite trazar cada commit al cronograma del proyecto.
 
 | Tipo | Cuándo usarlo |
 |------|--------------|
@@ -70,7 +70,7 @@ hotfix/*  ──────────────►
 ## Reglas
 
 - Commit messages must be written in English
-- Un commit por cambio lógico — no acumular cambios no relacionados
+- Un commit por cambio lógico - no acumular cambios no relacionados
 - Incluir el scope (ID de tarea del Gantt) siempre que aplique
 - No hacer push directo a `master` ni a `develop`
 - No subir credenciales, archivos `.env` ni configuraciones locales
