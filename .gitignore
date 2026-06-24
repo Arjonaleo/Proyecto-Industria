@@ -1,0 +1,51 @@
+# ── Java / Maven ─────────────────────────────────────────────
+*.class
+*.jar
+*.war
+*.ear
+/backend/target/
+
+# ── Spring Boot ───────────────────────────────────────────────
+/backend/src/main/resources/application-prod.properties
+/backend/src/main/resources/application-local.properties
+
+# ── Node.js / Angular ─────────────────────────────────────────
+node_modules/
+/frontend/dist/
+/frontend/.angular/
+npm-debug.log*
+yarn-error.log*
+
+# ── Android / Mobile ──────────────────────────────────────────
+/mobile/.gradle/
+/mobile/build/
+/mobile/app/build/
+*.apk
+*.aab
+local.properties
+
+# ── IDEs ──────────────────────────────────────────────────────
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+*.suo
+*.user
+
+# ── Windows OS ────────────────────────────────────────────────
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── SQL Server ────────────────────────────────────────────────
+*.mdf
+*.ldf
+*.bak
+*.trn
+
+# ── Credenciales / Entorno ────────────────────────────────────
+.env
+.env.*
+secrets.properties
