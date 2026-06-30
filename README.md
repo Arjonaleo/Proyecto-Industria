@@ -50,6 +50,15 @@ Inspección · Entradas · Salidas · Ubicaciones · Traspaso de envío · Trasp
 
 ```
 Proyecto-Industria/
+├── .github/
+│   └── workflows/      # Automatizaciones CI/CD
+├── config/             # Plantillas de configuración de servidor
+├── deployment/         # Scripts y guías de despliegue IIS
+├── monitoring/         # Health checks y monitoreo productivo
+├── scripts/
+│   ├── build/          # Scripts de compilación
+│   ├── database/       # Scripts operativos de base de datos
+│   └── deploy/         # Scripts de despliegue
 ├── docs/
 │   ├── 01-gestion/       # Planificación, actas, Gantt, riesgos
 │   ├── 02-analisis/      # ERS, casos de uso, reglas de negocio
