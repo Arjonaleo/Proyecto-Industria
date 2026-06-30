@@ -1,22 +1,22 @@
-# ── Java / Maven ─────────────────────────────────────────────
+# Java / Maven
 *.class
 *.jar
 *.war
 *.ear
 /backend/target/
 
-# ── Spring Boot ───────────────────────────────────────────────
+# Spring Boot
 /backend/src/main/resources/application-prod.properties
 /backend/src/main/resources/application-local.properties
 
-# ── Node.js / Angular ─────────────────────────────────────────
+# Node.js / Angular
 node_modules/
 /frontend/dist/
 /frontend/.angular/
 npm-debug.log*
 yarn-error.log*
 
-# ── Android / Mobile ──────────────────────────────────────────
+# Android / Mobile
 /mobile/.gradle/
 /mobile/build/
 /mobile/app/build/
@@ -24,7 +24,7 @@ yarn-error.log*
 *.aab
 local.properties
 
-# ── IDEs ──────────────────────────────────────────────────────
+# IDEs
 .idea/
 *.iml
 .classpath
@@ -40,18 +40,18 @@ local.properties
 .agents/
 .claude/
 
-# ── Windows OS ────────────────────────────────────────────────
+# Windows OS
 Thumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-# ── SQL Server ────────────────────────────────────────────────
+# SQL Server
 *.mdf
 *.ldf
 *.bak
 *.trn
 
-# ── Credenciales / Entorno ────────────────────────────────────
+# Credenciales / Entorno
 .env
 .env.*
 secrets.properties
