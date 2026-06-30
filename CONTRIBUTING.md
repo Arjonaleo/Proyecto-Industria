@@ -6,10 +6,10 @@
 |------|-----------|
 | `master` | Versión estable - solo merge en hitos del Gantt |
 | `develop` | Integración general del equipo |
-| `feature/<nombre>` | Nueva funcionalidad |
-| `fix/<nombre>` | Corrección de errores |
-| `docs/<nombre>` | Documentación |
-| `hotfix/<nombre>` | Corrección urgente en producción (F13) |
+| `feature/<name>` | Nueva funcionalidad |
+| `fix/<name>` | Corrección de errores |
+| `docs/<name>` | Documentación |
+| `hotfix/<name>` | Corrección urgente en producción (F13) |
 
 Los nombres de rama van en **ingles**, en kebab-case, sin espacios ni caracteres especiales.
 
