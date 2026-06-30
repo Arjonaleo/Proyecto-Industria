@@ -35,7 +35,8 @@ El `scope` es el ID de tarea del Gantt - permite trazar cada commit al cronogram
 | `feat` | Nueva funcionalidad |
 | `fix` | Corrección de bug |
 | `docs` | Documentación |
-| `chore` | Configuración, dependencias |
+| `chore` | Tareas de mantenimiento, dependencias y archivos de configuración del proyecto |
+| `build` | Cambios en sistemas de compilación: Maven, npm, Gradle, scripts de build o CI/CD |
 | `refactor` | Refactorización sin cambio funcional |
 | `test` | Casos de prueba |
 | `style` | Formato, espacios (sin lógica) |
