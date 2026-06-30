@@ -82,7 +82,6 @@ Proyecto-Industria/
 
 ## Documentación
 
-- [ERS_01 - Especificación de Requerimientos](docs/02-analisis/ERS_01.pdf)
 - [Planificación ORPEL](docs/01-gestion/planificacion-orpel.pdf)
 - [Cronograma Gantt](docs/01-gestion/cronograma/gantt_cronograma_sga.html)
 - [Guía de contribución](CONTRIBUTING.md)
