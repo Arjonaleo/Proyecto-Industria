@@ -47,26 +47,6 @@ Inspección · Entradas · Salidas · Ubicaciones · Traspaso de envío · Trasp
 ---
 
 
-## Cronograma
-
-30 semanas - Junio a Diciembre 2026 - Metodología Cascada
-
-| Fase    | Semanas | Descripción                   |
-|---------|---------|-------------------------------|
-| F1      | 1–2     | Inicio y Planificación        |
-| F2      | 2–6     | Análisis y Especificación     |
-| F3      | 3–8     | Arquitectura y Diseño         |
-| F4      | 8–9     | Configuración de Ambientes    |
-| F5–F7   | 10–21   | Desarrollo Backend + IZeta    |
-| F8      | 11–19   | Desarrollo Frontend Web       |
-| F9      | 15–21   | App Mobile Android            |
-| F10–F11 | 12–26   | Pruebas QA + UAT              |
-| F12     | 26–28   | Despliegue y Puesta en Marcha |
-| F13–F14 | 28–30   | Estabilización y Cierre       |
-
-Ver cronograma completo → [`docs/01-gestion/cronograma/`](docs/01-gestion/cronograma/)
-
----
 
 ## Estructura del Repositorio
 
