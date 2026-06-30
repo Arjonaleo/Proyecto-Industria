@@ -46,8 +46,6 @@ Inspección · Entradas · Salidas · Ubicaciones · Traspaso de envío · Trasp
 
 ---
 
-
-
 ## Estructura del Repositorio
 
 ```
