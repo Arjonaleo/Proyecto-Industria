@@ -49,3 +49,22 @@ $RECYCLE.BIN/
 .env
 .env.*
 secrets.properties
+
+# Config / Deployment - no subir valores reales
+config/*.config
+config/*.properties
+config/*.yml
+config/*.yaml
+config/*.json
+config/*.local.*
+config/*.prod.*
+config/*-prod.*
+config/*-local.*
+!config/*.template.*
+!config/*.example.*
+!config/README.md
+deployment/*.local.*
+deployment/*.prod.*
+deployment/*-local.*
+deployment/*-prod.*
+scripts/**/*.local.ps1
