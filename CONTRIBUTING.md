@@ -93,6 +93,17 @@ fix/*     -->              (solo en hitos del Gantt)
 hotfix/*  ------------>
 ```
 
+**Checklist antes de abrir el PR:**
+
+- [ ] La rama fue creada desde `develop`, no desde `master`
+- [ ] La rama esta actualizada con `develop` (`git pull origin develop`)
+- [ ] El proyecto compila sin errores
+- [ ] No hay archivos locales incluidos (`git status` limpio de `.env`, configs, herramientas)
+- [ ] Los commits son individuales y con mensajes descriptivos
+- [ ] El titulo del PR describe el cambio, no el archivo tocado
+
+**Proceso:**
+
 1. Abrir PR de `feature/<nombre>` → `develop`
 2. Requiere aprobación de **Diego Lara (QA/Integrador)** antes del merge
 3. El merge de `develop` → `master` ocurre únicamente en los hitos definidos en el Gantt
