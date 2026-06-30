@@ -11,13 +11,15 @@
 | `docs/<nombre>` | Documentación |
 | `hotfix/<nombre>` | Corrección urgente en producción (F13) |
 
+Los nombres de rama van en **ingles**, en kebab-case, sin espacios ni caracteres especiales.
+
 **Ejemplos:**
 ```
-feature/catalogo-productos
-feature/modulo-seguridad
+feature/product-catalog
+feature/security-module
 fix/login-timeout
-docs/ERS-revision-v2
-hotfix/inventario-ajuste-produccion
+docs/ers-revision-v2
+hotfix/inventory-adjustment
 ```
 
 ---
