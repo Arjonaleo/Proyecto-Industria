@@ -26,7 +26,7 @@
 # Documentation
 *.md      text eol=lf
 
-# Binary — no line ending conversion
+# Binary - no line ending conversion
 *.pdf     binary
 *.png     binary
 *.jpg     binary

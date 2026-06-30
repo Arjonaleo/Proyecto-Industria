@@ -56,9 +56,9 @@ test(10.4): add frontend regression tests for catalogs
 ## Flujo de Pull Requests
 
 ```
-feature/* ──► develop ──► master
-fix/*     ──►              (solo en hitos del Gantt)
-hotfix/*  ──────────────►
+feature/* --> develop --> master
+fix/*     -->              (solo en hitos del Gantt)
+hotfix/*  ------------>
 ```
 
 1. Abrir PR de `feature/<nombre>` → `develop`
