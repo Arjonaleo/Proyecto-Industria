@@ -76,3 +76,19 @@ hotfix/*  ──────────────►
 - No hacer push directo a `master` ni a `develop`
 - No subir credenciales, archivos `.env` ni configuraciones locales
 - La rama debe estar actualizada con `develop` antes de abrir PR
+
+---
+
+## Herramientas de Desarrollo
+
+El uso de herramientas de asistencia como Copilot, Cursor, Codex u otras es personal y forma parte del entorno local de cada contribuidor.
+
+No deben quedar archivos, metadatos ni referencias de estas herramientas en el repositorio.
+
+Reglas:
+
+- No subir carpetas de configuracion local como `.codex/`, `.cursor/`, `.agents/`, `.claude/` u otras similares.
+- No agregar footers como `Co-Authored-By`, `Generated-By` o `Assisted-By` en commits.
+- No mencionar herramientas de asistencia en mensajes de commit.
+- Los commits deben aparecer bajo la identidad Git del contribuidor.
+- Antes de commitear, revisar `git status` para confirmar que no se incluyan archivos locales.
