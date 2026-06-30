@@ -53,6 +53,38 @@ test(10.4): add frontend regression tests for catalogs
 
 ---
 
+## Commits Significativos
+
+Cada commit debe representar un solo cambio logico. El historial de git es la bitacora del proyecto - cada entrada debe tener sentido por si sola.
+
+**Reglas:**
+
+- Un commit = un cambio logico. No mezclar bugfix con feature, ni refactor con documentacion.
+- El mensaje debe describir que cambia y por que, no que archivos se tocaron.
+- No usar mensajes vagos: `fix`, `changes`, `update`, `wip`, `arregle cosas` no aportan contexto.
+- Si trabajaste en varias cosas al mismo tiempo, usa `git add -p` para separar los cambios en commits individuales.
+
+**Ejemplos:**
+
+| Mal | Bien |
+|-----|------|
+| `fix stuff` | `fix(5.2): correct null check in authentication filter` |
+| `changes` | `feat(6.1): add product catalog search endpoint` |
+| `update files` | `docs(2.2): add catalog analysis requirements` |
+| `arregle el login` | `fix(5.2): handle expired session token on login` |
+
+**Tip - separar cambios con `git add -p`:**
+
+Si modificaste varios archivos con propositos distintos, en lugar de `git add .` usa:
+
+```bash
+git add -p
+```
+
+Git muestra cada bloque de cambio uno por uno. Elige cuales incluir en este commit (`y` para incluir, `n` para omitir). Resultado: 2 commits limpios en lugar de 1 commit mezclado.
+
+---
+
 ## Flujo de Pull Requests
 
 ```
@@ -71,7 +103,6 @@ hotfix/*  ------------>
 ## Reglas
 
 - Commit messages must be written in English
-- Un commit por cambio lógico - no acumular cambios no relacionados
 - Incluir el scope (ID de tarea del Gantt) siempre que aplique
 - No hacer push directo a `master` ni a `develop`
 - No subir credenciales, archivos `.env` ni configuraciones locales
