@@ -46,18 +46,6 @@ Inspección · Entradas · Salidas · Ubicaciones · Traspaso de envío · Trasp
 
 ---
 
-## Equipo ORPEL
-
-| Nombre                         | Rol                        |
-|--------------------------------|----------------------------|
-| Héctor Oropeza Pelcastre       | Project Manager            |
-| Diego Cabrera Ramires          | Business Analyst           |
-| Sharon Daniela Escobedo Dávila | Analista Funcional         |
-| Leonardo Arjona Ramirez        | Analista de Requerimientos |
-| Ángel Nahum Trejo Osorio       | Analista de Proceso        |
-| Diego David Lara Martínez      | QA Documental / Integrador |
-
----
 
 ## Cronograma
 
