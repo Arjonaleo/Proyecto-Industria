@@ -55,7 +55,7 @@ Proyecto-Industria/
 ├── docs/
 │   ├── 01-gestion/       # Planificación, actas, Gantt, riesgos
 │   ├── 02-analisis/      # ERS, casos de uso, reglas de negocio
-│   ├── 03-disenio/       # Arquitectura, BD, APIs, UX-UI
+│   ├── 03-diseno/        # Arquitectura, BD, APIs, UX-UI
 │   ├── 04-configuracion/ # Setup de ambientes Dev/QA/UAT
 │   ├── 05-qa/            # Plan de pruebas, casos, reportes, UAT
 │   └── 06-despliegue/    # Manuales, plan de despliegue, cierre
