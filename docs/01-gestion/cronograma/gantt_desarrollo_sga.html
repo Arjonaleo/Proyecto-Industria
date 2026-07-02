@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title>Plan de Desarrollo SGA - Sprint Jul-Ago 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;background:#fff;color:#222}
+h1{font-size:16px;font-weight:700;padding:14px 16px 4px;color:#1F3864}
+.subtitle{font-size:11px;color:#666;padding:0 16px 10px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;padding:6px 16px 10px;align-items:center}
+.controls label{font-size:11px;color:#555;font-weight:600}
+select,button{font-size:11px;padding:3px 9px;border:1px solid #ccc;border-radius:4px;background:#fff;color:#222;cursor:pointer}
+button:hover{background:#f0f0f0}
+.kpis{display:flex;gap:10px;flex-wrap:wrap;padding:0 16px 10px}
+.kpi{background:#F2F2F2;border:1px solid #e5e5e5;border-radius:6px;padding:6px 12px;min-width:96px}
+.kpi .v{font-size:16px;font-weight:700;color:#1F3864}
+.kpi .l{font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.4px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;padding:0 16px 10px;font-size:11px;align-items:center}
+.leg-item{display:flex;align-items:center;gap:4px}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.gantt-wrap{overflow-x:auto;overflow-y:visible;padding-bottom:18px}
+table{border-collapse:collapse;width:100%;min-width:1000px}
+thead th{font-size:10px;font-weight:600;color:#555;background:#f7f7f7;border-bottom:1px solid #e0e0e0;white-space:nowrap;padding:4px 6px;text-align:left}
+thead th.month-hdr{text-align:center;border-left:1px solid #e8e8e8;font-size:10px}
+tr.group-row td{background:#1F3864;font-weight:700;font-size:11px;padding:5px 10px;border-top:1px solid #ddd;color:#fff}
+tr.enh-row td{border-bottom:1px solid #f0f0f0;vertical-align:middle}
+tr.enh-row:hover td{background:#fafafa}
+td.col-id{font-family:monospace;font-size:10px;color:#777;padding:5px 6px;white-space:nowrap;width:50px}
+td.col-desc{font-size:11px;padding:5px 6px;max-width:230px;color:#222;line-height:1.3}
+td.col-owner{font-size:10px;color:#555;padding:5px 6px;white-space:nowrap;width:64px}
+td.col-status{padding:5px 6px;width:60px}
+.badge{display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;font-weight:600;white-space:nowrap}
+td.col-bar{padding:3px 0;position:relative}
+.obs-flag{display:inline-block;width:7px;height:7px;border-radius:50%;background:#e24b4a;margin-left:4px;vertical-align:middle;cursor:pointer;flex-shrink:0}
+.tooltip{position:absolute;z-index:999;background:#222;color:#fff;font-size:11px;padding:8px 11px;border-radius:6px;max-width:300px;line-height:1.5;pointer-events:none;display:none;white-space:pre-wrap;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.month-sep{border-left:1px solid #e8e8e8}
+</style>
+</head>
+<body>
+<h1>Plan de Desarrollo - SGA ZPremia (Sprint Jul-Ago 2026)</h1>
+<div class="subtitle">ORPEL / Grupo Zeta &nbsp;·&nbsp; 6 semanas (2 Jul - 13 Ago 2026) &nbsp;·&nbsp; BD, Backend, Frontend y QA &nbsp;·&nbsp; Equipo: DC, HO, SD, DL, LA, AN</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="controls">
+  <label>Filtrar responsable:</label>
+  <select id="ownerFilter" onchange="render()">
+    <option value="">Todos</option>
+  </select>
+  <label>Filtrar area:</label>
+  <select id="phaseFilter" onchange="render()">
+    <option value="">Todas las areas</option>
+  </select>
+  <button onclick="resetF()">Limpiar filtros</button>
+  <button onclick="exportCSV()">Exportar CSV</button>
+</div>
+
+<div class="legend" id="legend">
+  <span style="font-size:11px;color:#555;font-weight:700">Responsable:</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#1A5C38"></span>DC - Diego Cabrera (BD)</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#548235"></span>HO - Hector Oropeza (Backend)</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#2E75B6"></span>SD - Sharon Daniela (Backend)</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#534AB7"></span>DL - Diego Lara (QA/Integ.)</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#C55A11"></span>LA - Leonardo Arjona (Frontend)</span>
+  <span class="leg-item"><span class="leg-dot" style="background:#ED7D31"></span>AN - Angel Nahum (UI/Diseno)</span>
+  <span class="leg-item" style="margin-left:6px"><span class="obs-flag"></span>Punto de integracion</span>
+</div>
+
+<div class="gantt-wrap" id="ganttWrap">
+  <div class="tooltip" id="tooltip"></div>
+</div>
+
+<script>
+const WEEK_PX = 100;
+const START = new Date('2026-07-02');
+const NUM_WEEKS = 6;
+const TODAY = new Date();
+
+const PHASE_NAMES = {
+  "1": "D1 - Analisis y Diseno",
+  "2": "D2 - Base de Datos",
+  "3": "D3 - Backend Core",
+  "4": "D4 - Frontend",
+  "5": "D5 - QA e Integracion"
+};
+
+const ROLE_COLOR = {
+  "DC":"#1A5C38","HO":"#548235","SD":"#2E75B6",
+  "DL":"#534AB7","LA":"#C55A11","AN":"#ED7D31"
+};
+
+const ROLE_NAME = {
+  "DC":"Diego Cabrera - BD Lead",
+  "HO":"Hector Oropeza - Backend",
+  "SD":"Sharon Daniela - Backend",
+  "DL":"Diego Lara - QA/Integ.",
+  "LA":"Leonardo Arjona - Frontend",
+  "AN":"Angel Nahum - UI/Diseno"
+};
+
+const MILESTONES = [
+  {"wk":0,"label":"Kickoff sprint - tareas asignadas","color":"#534AB7"},
+  {"wk":2,"label":"Schema BD aprobado y OpenAPI cerrado","color":"#1A5C38"},
+  {"wk":4,"label":"Backend seguridad y catalogos completo","color":"#548235"},
+  {"wk":5,"label":"Demo final - integracion y documentacion","color":"#1F3864"}
+];
+
+const ROLES = ["DC","HO","SD","DL","LA","AN"];
+
+const data = [
+  {"id":"D1.1","desc":"Revision y correccion del modelo ER (tablas, relaciones, tipos)","role":"DC","apoyo":"HO","phase":1,"startWk":0,"endWk":1,"dur":5,"esf":5,"pred":"","reqs":"BD Draft","flag":false},
+  {"id":"D1.2","desc":"Analisis de catalogos - analisis-catalogos.md","role":"SD","apoyo":"DL","phase":1,"startWk":0,"endWk":2,"dur":8,"esf":8,"pred":"","reqs":"REQ-F011..F028","flag":false},
+  {"id":"D1.3","desc":"Analisis de interfaces IZeta - interfaces-izeta.md","role":"DL","apoyo":"HO","phase":1,"startWk":1,"endWk":2,"dur":5,"esf":5,"pred":"D1.1","reqs":"Interfaces","flag":false},
+  {"id":"D1.4","desc":"Arquitectura C4 y decisiones de diseno (ADRs)","role":"HO","apoyo":"DC","phase":1,"startWk":1,"endWk":2,"dur":5,"esf":5,"pred":"D1.1","reqs":"Arquitectura","flag":true},
+  {"id":"D1.5","desc":"Wireframes y flujos principales (UX)","role":"AN","apoyo":"","phase":1,"startWk":0,"endWk":2,"dur":8,"esf":8,"pred":"","reqs":"REQ-F001","flag":false},
+  {"id":"D1.6","desc":"Guia de estilos y sistema de componentes Angular","role":"AN","apoyo":"LA","phase":1,"startWk":1,"endWk":3,"dur":8,"esf":8,"pred":"D1.5","reqs":"Frontend","flag":false},
+  {"id":"D1.7","desc":"Configuracion de ambientes dev del equipo","role":"DL","apoyo":"HO","phase":1,"startWk":0,"endWk":1,"dur":3,"esf":3,"pred":"","reqs":"DevOps","flag":false},
+  {"id":"D2.1","desc":"DDL schema principal SQL Server (tablas y constraints)","role":"DC","apoyo":"SD","phase":2,"startWk":1,"endWk":3,"dur":8,"esf":10,"pred":"D1.1","reqs":"BD Draft corregido","flag":false},
+  {"id":"D2.2","desc":"Migraciones Flyway V001..V015","role":"DC","apoyo":"","phase":2,"startWk":2,"endWk":3,"dur":5,"esf":5,"pred":"D2.1","reqs":"Flyway","flag":false},
+  {"id":"D2.3","desc":"Seeds de datos iniciales (catalogos base)","role":"DC","apoyo":"SD","phase":2,"startWk":3,"endWk":4,"dur":5,"esf":5,"pred":"D2.2","reqs":"Seeds","flag":false},
+  {"id":"D2.4","desc":"Contrato OpenAPI 3.0 - sga-api.yaml","role":"HO","apoyo":"DL","phase":2,"startWk":1,"endWk":3,"dur":8,"esf":8,"pred":"D1.3","reqs":"Interfaces / APIs","flag":true},
+  {"id":"D2.5","desc":"Revision y aprobacion del schema con el equipo","role":"DC","apoyo":"HO,SD","phase":2,"startWk":3,"endWk":4,"dur":2,"esf":4,"pred":"D2.2","reqs":"BD","flag":true},
+  {"id":"D3.1","desc":"Estructura base Spring Boot 3 (BaseEntity, DTOs, config)","role":"HO","apoyo":"","phase":3,"startWk":2,"endWk":3,"dur":5,"esf":5,"pred":"D2.4","reqs":"Backend","flag":false},
+  {"id":"D3.2","desc":"Configuracion CORS, JPA y conexion SQL Server","role":"HO","apoyo":"DC","phase":3,"startWk":2,"endWk":3,"dur":3,"esf":3,"pred":"D3.1","reqs":"Backend","flag":false},
+  {"id":"D3.3","desc":"GlobalExceptionHandler y validaciones @Valid","role":"HO","apoyo":"SD","phase":3,"startWk":3,"endWk":4,"dur":3,"esf":3,"pred":"D3.1","reqs":"Backend","flag":false},
+  {"id":"D3.4","desc":"Modulo de Seguridad: JWT, BCrypt, RBAC, @PreAuthorize","role":"HO","apoyo":"SD","phase":3,"startWk":3,"endWk":5,"dur":10,"esf":12,"pred":"D3.1,D2.3","reqs":"RF-01,RF-02","flag":true},
+  {"id":"D3.5","desc":"Backend Catalogos - entidades, repos, servicios, endpoints","role":"SD","apoyo":"DC","phase":3,"startWk":3,"endWk":5,"dur":10,"esf":14,"pred":"D3.1,D2.3","reqs":"REQ-F011..F028","flag":true},
+  {"id":"D3.6","desc":"AuditService y tabla BITACORA","role":"SD","apoyo":"","phase":3,"startWk":4,"endWk":5,"dur":5,"esf":5,"pred":"D3.4,D3.5","reqs":"RF-05","flag":false},
+  {"id":"D3.7","desc":"Endpoints catalogos - primera version funcional","role":"HO","apoyo":"SD","phase":3,"startWk":5,"endWk":6,"dur":3,"esf":5,"pred":"D3.5","reqs":"Backend / APIs","flag":true},
+  {"id":"D4.1","desc":"Setup Angular 17 - routing, guards e interceptores HTTP","role":"LA","apoyo":"","phase":4,"startWk":2,"endWk":4,"dur":8,"esf":8,"pred":"D1.6","reqs":"Frontend","flag":false},
+  {"id":"D4.2","desc":"Modulo de autenticacion y manejo de sesion JWT","role":"LA","apoyo":"AN","phase":4,"startWk":3,"endWk":5,"dur":8,"esf":8,"pred":"D4.1,D3.4","reqs":"RF-01","flag":true},
+  {"id":"D4.3","desc":"Componentes reutilizables UI (tablas, modales, formularios)","role":"AN","apoyo":"LA","phase":4,"startWk":2,"endWk":4,"dur":8,"esf":8,"pred":"D1.6","reqs":"Frontend","flag":false},
+  {"id":"D4.4","desc":"Pantallas y formularios de catalogos","role":"LA","apoyo":"AN","phase":4,"startWk":4,"endWk":6,"dur":8,"esf":12,"pred":"D4.1,D3.5","reqs":"REQ-F011..F028","flag":true},
+  {"id":"D4.5","desc":"Integracion login y navegacion principal","role":"LA","apoyo":"AN","phase":4,"startWk":4,"endWk":6,"dur":5,"esf":8,"pred":"D4.2,D4.3","reqs":"Frontend","flag":false},
+  {"id":"D5.1","desc":"Casos de prueba backend y APIs (Swagger / Postman)","role":"DL","apoyo":"HO","phase":5,"startWk":3,"endWk":5,"dur":8,"esf":8,"pred":"D2.4","reqs":"APIs","flag":false},
+  {"id":"D5.2","desc":"Revision de seguridad OWASP en endpoints y BD","role":"DL","apoyo":"HO","phase":5,"startWk":5,"endWk":6,"dur":5,"esf":5,"pred":"D3.4","reqs":"OWASP","flag":true},
+  {"id":"D5.3","desc":"Pruebas de integracion backend-frontend","role":"DL","apoyo":"LA","phase":5,"startWk":5,"endWk":6,"dur":5,"esf":5,"pred":"D3.7,D4.4","reqs":"Integracion","flag":true},
+  {"id":"D5.4","desc":"Demo de avance y documentacion de entregables","role":"DL","apoyo":"DC,HO,SD,LA,AN","phase":5,"startWk":5,"endWk":6,"dur":2,"esf":6,"pred":"D5.3","reqs":"Cierre sprint","flag":true}
+];
+
+function weekOf(d){ return Math.floor((d-START)/(7*864e5)); }
+function roleColor(r){ return ROLE_COLOR[r]||'#888780'; }
+function badgeHtml(r){
+  const c=roleColor(r);
+  return `<span class="badge" style="background:${c}22;color:${c};border:0.5px solid ${c}66">${r}</span>`;
+}
+
+(function initFilters(){
+  const of=document.getElementById('ownerFilter');
+  ROLES.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r+' - '+ROLE_NAME[r];of.appendChild(o);});
+  const pf=document.getElementById('phaseFilter');
+  Object.keys(PHASE_NAMES).sort((a,b)=>a-b).forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=PHASE_NAMES[p];pf.appendChild(o);});
+})();
+
+function resetF(){document.getElementById('ownerFilter').value='';document.getElementById('phaseFilter').value='';render();}
+
+function monthCells(COLS){
+  let cells=[];let curMonth=-1,span=0,label='';
+  const fmt=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  for(let w=0;w<COLS;w++){
+    const d=new Date(START.getTime()+w*7*864e5);const m=d.getMonth();
+    if(m!==curMonth){if(span>0)cells.push(`<th class="month-hdr month-sep" colspan="${span}">${label}</th>`);curMonth=m;span=1;label=fmt[m]+" '"+String(d.getFullYear()).slice(2);}else span++;
+  }
+  if(span>0)cells.push(`<th class="month-hdr month-sep" colspan="${span}">${label}</th>`);
+  return cells.join('');
+}
+
+function renderKpis(rows){
+  const totalEsf=data.reduce((a,d)=>a+d.esf,0);
+  const finDate=new Date(START.getTime()+NUM_WEEKS*7*864e5);
+  const k=[
+    ['Actividades',data.length],['Areas',Object.keys(PHASE_NAMES).length],
+    ['Semanas',NUM_WEEKS],['Esfuerzo (p-d)',totalEsf],
+    ['Inicio',START.toLocaleDateString('es-MX')],['Fin estimado',finDate.toLocaleDateString('es-MX')]
+  ];
+  document.getElementById('kpis').innerHTML=k.map(([l,v])=>`<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+}
+
+function render(){
+  const ownerF=document.getElementById('ownerFilter').value;
+  const phaseF=document.getElementById('phaseFilter').value;
+  let rows=data.filter(d=>{
+    if(ownerF&&d.role!==ownerF&&!(d.apoyo||'').split(',').includes(ownerF))return false;
+    if(phaseF&&String(d.phase)!==phaseF)return false;
+    return true;
+  });
+  renderKpis(rows);
+  const COLS=NUM_WEEKS;const todayWk=weekOf(TODAY);
+  let html=`<table><thead><tr>
+    <th style="width:50px">ID</th>
+    <th style="width:230px">Actividad</th>
+    <th style="width:64px">Resp.</th>
+    <th style="width:60px">Nombre</th>
+    ${monthCells(COLS)}
+  </tr><tr>
+    <th colspan="4" style="background:#fff;border-bottom:0.5px solid #e0e0e0"></th>
+    ${Array.from({length:COLS},(_,w)=>{
+      const ms=MILESTONES.filter(m=>m.wk===w);
+      const d=new Date(START.getTime()+w*7*864e5);
+      const monthBorder=w>0&&(d.getMonth()!==new Date(START.getTime()+(w-1)*7*864e5).getMonth());
+      const sem=`<div style="font-size:8px;color:#bbb">${w+1}</div>`;
+      if(!ms.length)return`<th class="${monthBorder?'month-sep':''}" style="width:${WEEK_PX}px;background:#fff;border-bottom:0.5px solid #e0e0e0;padding:1px 0;text-align:center">${sem}</th>`;
+      return`<th class="${monthBorder?'month-sep':''}" style="width:${WEEK_PX}px;background:#fff;border-bottom:0.5px solid #e0e0e0;padding:1px 0;position:relative">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+          ${ms.map(m=>`<div style="width:9px;height:9px;border-radius:50%;background:${m.color};border:1.5px solid #fff;box-shadow:0 0 0 1px ${m.color};cursor:pointer" title="${m.label}"></div>`).join('')}
+          ${sem}
+        </div>
+      </th>`;
+    }).join('')}
+  </tr></thead><tbody>`;
+
+  const phases=Object.keys(PHASE_NAMES).map(Number).sort((a,b)=>a-b);
+  phases.forEach(p=>{
+    const gRows=rows.filter(d=>d.phase===p);if(!gRows.length)return;
+    html+=`<tr class="group-row"><td colspan="${4+COLS}">${PHASE_NAMES[p]}</td></tr>`;
+    gRows.forEach(d=>{
+      const c=roleColor(d.role);const light=c+'22',border=c+'99';
+      const s=Math.max(0,Math.min(d.startWk,COLS));const e=Math.max(0,Math.min(d.endWk,COLS));
+      const obsEsc=(d.reqs+(d.pred?(' | Predecesor: '+d.pred):'')).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      const descEsc=d.desc.replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      const apoyoEsc=(d.apoyo||'').replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      let barCells='';
+      for(let w=0;w<COLS;w++){
+        const isToday=(w===todayWk);const inBar=(w>=s&&w<e);
+        const isStart=(w===s);const isEnd=(w===e-1);
+        const dts=new Date(START.getTime()+w*7*864e5);
+        const monthBorder=w>0&&(dts.getMonth()!==new Date(START.getTime()+(w-1)*7*864e5).getMonth());
+        barCells+=`<td class="col-bar${monthBorder?' month-sep':''}" style="width:${WEEK_PX}px;padding:0;position:relative">`;
+        if(isToday)barCells+=`<div style="position:absolute;top:0;bottom:0;left:0;width:100%;background:#e24b4a11;border-left:1.5px solid #e24b4a88;z-index:1"></div>`;
+        MILESTONES.filter(m=>m.wk===w).forEach(m=>{barCells+=`<div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:${m.color};opacity:0.25;z-index:1;pointer-events:none"></div>`;});
+        if(inBar){
+          const rL=isStart?'3px':'0';const rR=isEnd?'3px':'0';
+          barCells+=`<div style="position:absolute;top:4px;left:0;right:0;height:16px;background:${light};border-top:1.5px solid ${border};border-bottom:1.5px solid ${border};${isStart?`border-left:1.5px solid ${border};border-radius:${rL} 0 0 ${rL}`:''}${isEnd?`border-right:1.5px solid ${border};border-radius:0 ${rR} ${rR} 0`:''}z-index:2"></div>`;
+          if(isStart)barCells+=`<div style="position:absolute;top:6px;left:3px;font-size:9px;font-weight:700;color:${c};z-index:4;white-space:nowrap">${d.role}</div>`;
+          if(isStart&&d.flag)barCells+=`<div style="position:absolute;top:1px;right:1px;width:7px;height:7px;border-radius:50%;background:#e24b4a;z-index:3"></div>`;
+        }
+        barCells+='</td>';
+      }
+      const firstName=ROLE_NAME[d.role]?ROLE_NAME[d.role].split(' ')[0]:'';
+      html+=`<tr class="enh-row" onmouseenter="showTip(event,'${descEsc}','${d.role}','${apoyoEsc}','${obsEsc}',${d.dur},${d.esf},${d.startWk+1},${d.endWk})" onmouseleave="hideTip()">
+        <td class="col-id">${d.id}</td>
+        <td class="col-desc">${d.desc.length>46?d.desc.slice(0,45)+'...':d.desc}${d.flag?'<span class="obs-flag" title="Punto de integracion"></span>':''}</td>
+        <td class="col-status">${badgeHtml(d.role)}</td>
+        <td class="col-owner">${firstName}</td>
+        ${barCells}
+      </tr>`;
+    });
+  });
+  html+='</tbody></table>';
+  document.getElementById('ganttWrap').innerHTML='<div class="tooltip" id="tooltip"></div>'+html;
+}
+
+function showTip(e,desc,role,apoyo,obs,dur,esf,si,sf){
+  const t=document.getElementById('tooltip');if(!t)return;
+  let content=`${desc}\n\nResponsable: ${role} - ${ROLE_NAME[role]||role}`;
+  if(apoyo)content+=`\nApoyo: ${apoyo}`;
+  content+=`\nSemanas: ${si}-${sf}  ·  Duracion: ${dur} d hab.  ·  Esfuerzo: ${esf} p-d`;
+  if(obs)content+=`\n\n${obs}`;
+  t.textContent=content;t.style.display='block';
+  const rect=e.currentTarget.getBoundingClientRect();
+  const wrap=document.getElementById('ganttWrap').getBoundingClientRect();
+  t.style.top=(rect.top-wrap.top+26)+'px';
+  t.style.left=Math.min(Math.max(rect.left-wrap.left,4),wrap.width-310)+'px';
+}
+function hideTip(){const t=document.getElementById('tooltip');if(t)t.style.display='none';}
+
+function exportCSV(){
+  const hdr=['ID','Actividad','Area','Responsable','Apoyo','Sem Inicio','Sem Fin','Dur (d hab)','Esfuerzo (p-d)','Predecesor','Reqs'];
+  const rows=data.map(d=>[d.id,`"${d.desc}"`,PHASE_NAMES[d.phase],d.role,`"${d.apoyo}"`,d.startWk+1,d.endWk,d.dur,d.esf,`"${d.pred}"`,`"${d.reqs}"`]);
+  const csv=[hdr,...rows].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('﻿'+csv);
+  a.download='gantt_desarrollo_sga.csv';a.click();
+}
+
+render();
+</script>
+</body>
+</html>
